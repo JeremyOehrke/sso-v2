@@ -23,5 +23,7 @@ func main() {
 
 	router.GET("/", session.GetBase())
 
+
+
 	router.Run(":" + port)
 }
