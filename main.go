@@ -2,8 +2,8 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"os"
+	"sso-v2/internal/handlers/session"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/heroku/x/hmetrics/onload"
@@ -21,9 +21,7 @@ func main() {
 	router.LoadHTMLGlob("templates/*.tmpl.html")
 	router.Static("/static", "static")
 
-	router.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "Sup", nil)
-	})
+	router.GET("/", session.GetBase())
 
 	router.Run(":" + port)
 }

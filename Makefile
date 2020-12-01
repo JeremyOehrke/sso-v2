@@ -12,5 +12,5 @@ clean:
 heroku: $(DOCKER_CMD)
 	heroku container:push web
 
-localbuild:
+local:
 	$(GO_BUILD_ENV) go build -o bin/sso-v2 -v .

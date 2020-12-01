@@ -1,6 +1,6 @@
-module github.com/heroku/sso-v2
+module sso-v2
 
-go 1.12
+go 1.14
 
 require (
 	github.com/gin-gonic/gin v0.0.0-20150626140855-4cc2de6207f4
