@@ -8,7 +8,7 @@ type UserData struct {
 }
 
 type UserSVC interface {
-	PasswordEncrypt(pass string) (encryptedPass string, err error)
+	EncryptPassword(pass string) (encryptedPass string, err error)
 	AuthUser(username string, pass string) (bool, error)
 	CreateUser(username string, pass string) error
 }
