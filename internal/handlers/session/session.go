@@ -43,6 +43,6 @@ func SetThing() gin.HandlerFunc {
 			log.Print("error getting key")
 		}
 
-		ctx.String(http.StatusOK, "Done! %s -> %s", "TEST_KEY", retVal.String())
+		ctx.String(http.StatusOK, "Done! %s -> %s", "TEST_KEY", retVal.Val())
 	}
 }
