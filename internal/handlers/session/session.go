@@ -2,9 +2,12 @@ package session
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
+	"gopkg.in/redis.v3"
 	"log"
 	"net/http"
+	"net/url"
+	"os"
+	"strings"
 )
 
 func GetBase() gin.HandlerFunc {
@@ -16,22 +19,30 @@ func GetBase() gin.HandlerFunc {
 func SetThing() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
-		rdb := redis.NewClient(&redis.Options{
-			Addr:     "redis-12250.c11.us-east-1-2.ec2.cloud.redislabs.com:12250",
-			Password: "Vfzl3XZbh0A7vcIl8ZZsOgbn2XkFuGu6", // no password set
-			DB:       0,                                  // use default DB
+		var resolvedURL = os.Getenv("REDIS_URL")
+		var password = ""
+		if !strings.Contains(resolvedURL, "localhost") {
+			parsedURL, _ := url.Parse(resolvedURL)
+			password, _ = parsedURL.User.Password()
+			resolvedURL = parsedURL.Host
+		}
+
+		client := redis.NewClient(&redis.Options{
+			Addr:     resolvedURL,
+			Password: password,
+			DB:       0, // use default DB
 		})
 
-		err := rdb.Set(ctx, "TEST_KEY", "SomeValue", 0).Err()
+		err := client.Set("TEST_KEY", "test_val", 0).Err()
 		if err != nil {
-			log.Print("Error setting key")
+			log.Print("error writing key")
 		}
 
-		val, err := rdb.Get(ctx, "TEST_KEY").Result()
-		if err != nil {
-			log.Print("Error getting key")
+		retVal := client.Get("TEST_KEY")
+		if retVal.Err() != nil {
+			log.Print("error getting key")
 		}
 
-		ctx.String(http.StatusOK, "Done! %s -> %s", "TEST_KEY", val)
+		ctx.String(http.StatusOK, "Done! %s -> %s", "TEST_KEY", retVal.String())
 	}
 }
