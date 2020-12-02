@@ -22,8 +22,7 @@ func main() {
 	router.Static("/static", "static")
 
 	router.GET("/", session.GetBase())
-
-
+	router.GET("/sess", session.SetThing())
 
 	router.Run(":" + port)
 }

@@ -11,5 +11,5 @@ require (
 	golang.org/x/net v0.0.0-20201201195509-5d6afe98e0b7 // indirect
 	gopkg.in/bluesuncorp/validator.v5 v5.9.1 // indirect
 	gopkg.in/bsm/ratelimit.v1 v1.0.0-20160220154919-db14e161995a // indirect
-	gopkg.in/redis.v3 v3.6.4 // indirect
+	gopkg.in/redis.v3 v3.6.4
 )
