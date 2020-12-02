@@ -19,7 +19,7 @@ func GetBase() gin.HandlerFunc {
 func SetThing() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
-		var resolvedURL = os.Getenv("REDIS_URL")
+		var resolvedURL = os.Getenv("REDISCLOUD_URL")
 		var password = ""
 		if !strings.Contains(resolvedURL, "localhost") {
 			parsedURL, _ := url.Parse(resolvedURL)
