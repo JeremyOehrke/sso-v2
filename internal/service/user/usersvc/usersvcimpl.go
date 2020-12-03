@@ -45,7 +45,7 @@ func (svc *UserSVCImpl) AuthUser(username string, pass string) (bool, error) {
 	userDat := &user.UserData{}
 	err = json.Unmarshal([]byte(foundUser), userDat)
 	if err != nil {
-		log.Printf("error unmarshaling user data: %v", err.Error())
+		log.Printf("error unmarshaling userhandlers data: %v", err.Error())
 		return false, err
 	}
 
@@ -86,13 +86,13 @@ func (svc *UserSVCImpl) CreateUser(username string, encryptedPass string) error 
 
 	rawUser, err := json.Marshal(userData)
 	if err != nil {
-		log.Printf("error marshaling user data: %v", err.Error())
+		log.Printf("error marshaling userhandlers data: %v", err.Error())
 		return err
 	}
 
 	err = svc.ds.SetKey(generateUserKey(username), string(rawUser), 0)
 	if err != nil {
-		log.Printf("error writing user to datastore: %v", err.Error())
+		log.Printf("error writing userhandlers to datastore: %v", err.Error())
 		return err
 	}
 

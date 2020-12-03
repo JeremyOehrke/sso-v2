@@ -21,27 +21,27 @@ func NewSessionSvc(ds datasource.Datasource) session.SessionSVC {
 func (svc *SessionSVCImpl) GetSessionById(id string) (*session.SessionData, error) {
 	rawSess, err := svc.ds.GetKey(generateSessionKey(id))
 	if err != nil {
-		log.Print("error fetching session by id: " + err.Error())
+		log.Print("error fetching sessionhandlers by id: " + err.Error())
 		return nil, err
 	}
-	// if our key returns empty, no session exists
+	// if our key returns empty, no sessionhandlers exists
 	if len(rawSess) == 0 {
 		return nil, nil
 	}
 
-	//if we have a session, unmarshal it and return
+	//if we have a sessionhandlers, unmarshal it and return
 	sess := &session.SessionData{}
 	err = json.Unmarshal([]byte(rawSess), sess)
 	if err != nil {
-		log.Print("error unmarshaling session data: " + err.Error())
+		log.Print("error unmarshaling sessionhandlers data: " + err.Error())
 		return nil, err
 	}
 
-	//bump session expiration in Redis
+	//bump sessionhandlers expiration in Redis
 	err = svc.ds.SetKey(generateSessionKey(id), rawSess, session.MAX_SESSION_DURATION)
 	if err != nil {
-		log.Print("error resetting session timeout: " + err.Error())
-		return nil, err //returns nil even if session found to ensure no strange behavior
+		log.Print("error resetting sessionhandlers timeout: " + err.Error())
+		return nil, err //returns nil even if sessionhandlers found to ensure no strange behavior
 	}
 
 	return sess, nil
@@ -56,7 +56,7 @@ func (svc *SessionSVCImpl) CreateSession(username string, sessionBody map[string
 	}
 	rawSess, err := json.Marshal(sess)
 	if err != nil {
-		log.Print("error marshaling session data: " + err.Error())
+		log.Print("error marshaling sessionhandlers data: " + err.Error())
 		return "", err
 	}
 

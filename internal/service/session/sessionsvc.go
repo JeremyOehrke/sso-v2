@@ -1,6 +1,6 @@
 package session
 
-//go:generate mockgen -source=sessionsvc.go -destination=../../../gen/mocks/mock_session/sessionsvc.go -self_package=../pkg/session
+//go:generate mockgen -source=sessionsvc.go -destination=../../../gen/mocks/mock_session/sessionsvc.go -self_package=../pkg/sessionhandlers
 
 const (
 	MAX_SESSION_DURATION = 3600

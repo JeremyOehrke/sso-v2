@@ -147,7 +147,7 @@ func TestSessionSVCImpl_GetSessionById_EmptySession(t *testing.T) {
 		return
 	}
 	if sess != nil {
-		t.Errorf("returned session when one doesn't exist")
+		t.Errorf("returned sessionhandlers when one doesn't exist")
 		return
 	}
 	ctrl.Finish()
@@ -167,7 +167,7 @@ func TestSessionSVCImpl_GetSessionById_GetKeyError(t *testing.T) {
 		return
 	}
 	if sess != nil {
-		t.Errorf("returned session when one doesn't exist")
+		t.Errorf("returned sessionhandlers when one doesn't exist")
 		return
 	}
 	ctrl.Finish()
@@ -195,7 +195,7 @@ func TestSessionSVCImpl_GetSessionById_SessionFound(t *testing.T) {
 		SessionVars: map[string]string{"test": "val"},
 	}
 	if !reflect.DeepEqual(sess, expectedSession) {
-		t.Error("expected session didn't match")
+		t.Error("expected sessionhandlers didn't match")
 		return
 	}
 	ctrl.Finish()

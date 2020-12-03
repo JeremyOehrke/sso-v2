@@ -1,6 +1,6 @@
 package user
 
-//go:generate mockgen -source=usersvc.go -destination=../../../gen/mocks/mock_user/usersvc.go -self_package=../pkg/user
+//go:generate mockgen -source=usersvc.go -destination=../../../gen/mocks/mock_user/usersvc.go -self_package=../pkg/userhandlers
 
 type UserData struct {
 	Username   string
