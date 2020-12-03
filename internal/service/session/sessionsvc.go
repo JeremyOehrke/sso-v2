@@ -7,9 +7,9 @@ const (
 )
 
 type SessionData struct {
-	Id          string
-	Username    string
-	SessionVars map[string]string
+	Id          string            `json:"id"`
+	Username    string            `json:"username"`
+	SessionVars map[string]string `json:"sessionVars"`
 }
 
 type SessionSVC interface {
@@ -17,3 +17,9 @@ type SessionSVC interface {
 	CreateSession(username string, sessionBody map[string]string) (sessionId string, err error)
 	DestroySession(id string) error
 }
+
+type SessionError string
+
+func (e SessionError) Error() string { return string(e) }
+
+const SessionNotFoundError = SessionError("session not found")

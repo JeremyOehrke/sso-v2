@@ -5,9 +5,12 @@ import (
 	"log"
 	"net/http"
 	"sso-v2/internal/handlers"
+	"sso-v2/internal/service/session"
 
 	"sso-v2/internal/service/user"
 )
+
+const SessionIdHeader = "X-Session-Id"
 
 type userRequestBody struct {
 	Username string
@@ -34,20 +37,30 @@ type authResponse struct {
 	AuthOk bool `json:"authOk"`
 }
 
-func AuthUserHandler(svc user.UserSVC) gin.HandlerFunc {
+func AuthUserHandler(userSVC user.UserSVC, sessionSVC session.SessionSVC) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		userData, done := bindRequestData(ctx)
 		if done {
 			return
 		}
 
-		authed, err := svc.AuthUser(userData.Username, userData.Password)
+		authed, err := userSVC.AuthUser(userData.Username, userData.Password)
 		//This only logs and sends an error if we got some other error than the user just not being found
 		//User not found is an expected and acceptable edge case we wouldn't want to page on
 		if err != nil && err != user.NotFound {
 			log.Printf("error authorizing user: %v", err.Error())
 			ctx.JSON(http.StatusInternalServerError, handlers.ErrorMessage{Message: "error authorizing user"})
 			return
+		}
+
+		if authed {
+			sessionId, err := sessionSVC.CreateSession(userData.Username, make(map[string]string))
+			if err != nil {
+				log.Printf("error creating new user: %v", err.Error())
+				ctx.JSON(http.StatusInternalServerError, handlers.ErrorMessage{Message: "error creating session"})
+				return
+			}
+			ctx.Header(SessionIdHeader, sessionId)
 		}
 
 		ctx.JSON(http.StatusOK, authResponse{AuthOk: authed})

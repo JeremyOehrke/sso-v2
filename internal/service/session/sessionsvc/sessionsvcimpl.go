@@ -26,7 +26,7 @@ func (svc *SessionSVCImpl) GetSessionById(id string) (*session.SessionData, erro
 	}
 	// if our key returns empty, no sessionhandlers exists
 	if len(rawSess) == 0 {
-		return nil, nil
+		return nil, session.SessionNotFoundError
 	}
 
 	//if we have a sessionhandlers, unmarshal it and return

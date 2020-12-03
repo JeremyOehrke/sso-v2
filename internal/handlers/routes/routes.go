@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"sso-v2/internal/handlers/sessionhandlers"
 	"sso-v2/internal/handlers/userhandlers"
 	"sso-v2/internal/service/session"
 	"sso-v2/internal/service/user"
@@ -19,14 +20,12 @@ func BuildRoutes(ginMode string, usersvc user.UserSVC, sessionsvc session.Sessio
 		usrs := v1.Group("/users")
 		{
 			usrs.POST("/", userhandlers.CreateUserHandler(usersvc))
-			usrs.POST("/doAuth", userhandlers.AuthUserHandler(usersvc))
+			usrs.POST("/doAuth", userhandlers.AuthUserHandler(usersvc, sessionsvc))
 		}
 
 		sess := v1.Group("/sessions")
 		{
-			sess.POST("/", func(context *gin.Context) {
-
-			})
+			sess.GET("/:sessionId", sessionhandlers.GetSessionDataHandler(sessionsvc))
 		}
 	}
 
