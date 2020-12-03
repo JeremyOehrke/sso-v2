@@ -12,3 +12,12 @@ type UserSVC interface {
 	AuthUser(username string, pass string) (bool, error)
 	CreateUser(username string, pass string) error
 }
+
+//Mapped Errors
+type NotFoundError string
+
+func (e NotFoundError) Error() string {
+	return string(e)
+}
+
+const NotFound = NotFoundError("user not found")

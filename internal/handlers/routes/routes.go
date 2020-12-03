@@ -19,6 +19,7 @@ func BuildRoutes(ginMode string, usersvc user.UserSVC, sessionsvc session.Sessio
 		usrs := v1.Group("/users")
 		{
 			usrs.POST("/", userhandlers.CreateUserHandler(usersvc))
+			usrs.POST("/doAuth", userhandlers.AuthUserHandler(usersvc))
 		}
 
 		sess := v1.Group("/sessions")

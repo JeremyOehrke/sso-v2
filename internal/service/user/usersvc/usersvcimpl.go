@@ -10,6 +10,8 @@ import (
 	"sso-v2/internal/service/user"
 )
 
+const ()
+
 type UserSVCImpl struct {
 	ds datasource.Datasource
 }
@@ -38,7 +40,7 @@ func (svc *UserSVCImpl) AuthUser(username string, pass string) (bool, error) {
 		return false, err
 	}
 	if foundUser == "" {
-		return false, errors.New("username does not exist")
+		return false, user.NotFound
 	}
 
 	//Check passwords match
