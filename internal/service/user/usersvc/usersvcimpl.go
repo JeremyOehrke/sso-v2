@@ -32,8 +32,41 @@ func (svc *UserSVCImpl) EncryptPassword(pass string) (encryptedPass string, err 
 }
 
 func (svc *UserSVCImpl) AuthUser(username string, pass string) (bool, error) {
+	foundUser, err := svc.ds.GetKey(generateUserKey(username))
+	if err != nil {
+		log.Print("error checking for existing username")
+		return false, err
+	}
+	if foundUser == "" {
+		return false, errors.New("username does not exist")
+	}
 
-	return false, nil
+	//Check passwords match
+	userDat := &user.UserData{}
+	err = json.Unmarshal([]byte(foundUser), userDat)
+	if err != nil {
+		log.Printf("error unmarshaling user data: %v", err.Error())
+		return false, err
+	}
+
+	hashPass, err := base64.StdEncoding.DecodeString(userDat.HashedPass)
+	if err != nil {
+		log.Printf("error base64 decoding: %v", err.Error())
+		return false, err
+	}
+
+	err = bcrypt.CompareHashAndPassword(hashPass, []byte(pass))
+	//if our passwords mismatch, its not a failure, just rejected
+	if err == bcrypt.ErrMismatchedHashAndPassword {
+		return false, nil
+	}
+	if err != nil { //This catches all other errors and returns the error
+		log.Printf("password comparison error: %v", err.Error())
+		return false, err
+	}
+
+	//If the check has made it this far, all's well
+	return true, nil
 }
 
 func (svc *UserSVCImpl) CreateUser(username string, encryptedPass string) error {
@@ -47,8 +80,8 @@ func (svc *UserSVCImpl) CreateUser(username string, encryptedPass string) error 
 	}
 
 	userData := user.UserData{
-		Username:      username,
-		EncryptedPass: encryptedPass,
+		Username:   username,
+		HashedPass: encryptedPass,
 	}
 
 	rawUser, err := json.Marshal(userData)

@@ -3,8 +3,8 @@ package user
 //go:generate mockgen -source=usersvc.go -destination=../../../gen/mocks/mock_user/usersvc.go -self_package=../pkg/user
 
 type UserData struct {
-	Username      string
-	EncryptedPass string
+	Username   string
+	HashedPass string
 }
 
 type UserSVC interface {

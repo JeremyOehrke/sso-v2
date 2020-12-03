@@ -37,7 +37,7 @@ func TestUserSVCImpl_PasswordEncrypt(t *testing.T) {
 
 			decodedHash, err := base64.StdEncoding.DecodeString(gotEncryptedPass)
 			if err != nil {
-				t.Error("mis-encoded password hash")
+				t.Error("password encoding issue")
 			}
 
 			if bcrypt.CompareHashAndPassword(decodedHash, []byte(tt.args.pass)) != nil {
@@ -140,6 +140,86 @@ func TestUserSVCImpl_CreateUser(t *testing.T) {
 				t.Errorf("CreateUser() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
+		})
+	}
+}
+
+func TestUserSVCImpl_AuthUser(t *testing.T) {
+	type args struct {
+		username string
+		pass     string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		want      bool
+		userFound string
+		dsError   error
+		wantErr   bool
+	}{
+		{
+			name: "User Not Found",
+			args: args{
+				username: "joehrke",
+				pass:     "abc123",
+			},
+			userFound: "",
+			dsError:   nil,
+			wantErr:   true,
+			want:      false,
+		},
+		{
+			name: "Redis Error",
+			args: args{
+				username: "joehrke",
+				pass:     "abc123",
+			},
+			userFound: "",
+			dsError:   errors.New("test Redis error"),
+			wantErr:   true,
+			want:      false,
+		},
+		{
+			name: "Password Mismatch",
+			args: args{
+				username: "joehrke",
+				pass:     "abc1234",
+			},
+			userFound: `{"username":"joehrke", "hashedPass":"JDJhJDE0JHBmRnZYWWtvaXViWEFIdm9ra2lEVi5PbzhwRXppQXNBOHJzNXVyYXpIZ2NYM1BjczlkMy91"}`,
+			dsError:   nil,
+			wantErr:   false,
+			want:      false,
+		},
+		{
+			name: "Password Match",
+			args: args{
+				username: "joehrke",
+				pass:     "abc123",
+			},
+			userFound: `{"username":"joehrke", "hashedPass":"JDJhJDE0JHBmRnZYWWtvaXViWEFIdm9ra2lEVi5PbzhwRXppQXNBOHJzNXVyYXpIZ2NYM1BjczlkMy91"}`,
+			dsError:   nil,
+			wantErr:   false,
+			want:      true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			ds := mock_datasource.NewMockDatasource(ctrl)
+			ds.EXPECT().GetKey(generateUserKey(tt.args.username)).Return(tt.userFound, tt.dsError)
+
+			svc := &UserSVCImpl{
+				ds: ds,
+			}
+
+			got, err := svc.AuthUser(tt.args.username, tt.args.pass)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AuthUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("AuthUser() got = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }
