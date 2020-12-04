@@ -73,7 +73,7 @@ func (svc *UserSVCImpl) AuthUser(username string, pass string) (bool, error) {
 
 func (svc *UserSVCImpl) CreateUser(username string, encryptedPass string) error {
 	foundUser, err := svc.ds.GetKey(generateUserKey(username))
-	if err != nil {
+	if err != nil && err != datasource.KeyNotFound {
 		log.Print("error checking for existing username")
 		return err
 	}

@@ -8,7 +8,7 @@ import (
 	"sso-v2/internal/service/user"
 )
 
-func BuildRoutes(ginMode string, usersvc user.UserSVC, sessionsvc session.SessionSVC) *gin.Engine {
+func BuildRouter(ginMode string, usersvc user.UserSVC, sessionsvc session.SessionSVC) *gin.Engine {
 	gin.SetMode(ginMode)
 	router := gin.Default()
 	router.Use(gin.Logger())

@@ -25,8 +25,6 @@ func main() {
 	sessionSvc := sessionsvc.NewSessionSvc(ds)
 	/* End Dependency Initialization */
 
-	router := routes.BuildRoutes(gin.ReleaseMode, userSvc, sessionSvc)
-	router.Use(gin.Logger())
-
+	router := routes.BuildRouter(gin.ReleaseMode, userSvc, sessionSvc)
 	router.Run(":" + port)
 }

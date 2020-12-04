@@ -7,3 +7,11 @@ type Datasource interface {
 	SetKey(key string, val string, timeoutSeconds int) error
 	DelKey(key string) error
 }
+
+type KeyNotFoundError string
+
+func (e KeyNotFoundError) Error() string {
+	return string(e)
+}
+
+const KeyNotFound = KeyNotFoundError("redis: nil")
