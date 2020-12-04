@@ -46,8 +46,8 @@ func (ds *RedisDataSource) GetKey(key string) (val string, err error) {
 	return retVal, err
 }
 
-func (ds *RedisDataSource) SetKey(key string, val string, timeoutSeconds int) error {
-	err := ds.cli.Set(key, val, time.Duration(timeoutSeconds)).Err()
+func (ds *RedisDataSource) SetKey(key string, val string, timeout time.Duration) error {
+	err := ds.cli.Set(key, val, timeout).Err()
 	if err != nil {
 		log.Print("error writing key: " + err.Error())
 	}

@@ -2,11 +2,11 @@ package usersvc
 
 import (
 	"errors"
-	"fmt"
 	"github.com/golang/mock/gomock"
 	"golang.org/x/crypto/bcrypt"
 	"sso-v2/gen/mocks/mock_datasource"
 	"testing"
+	"time"
 )
 
 func TestUserSVCImpl_PasswordEncrypt(t *testing.T) {
@@ -35,7 +35,6 @@ func TestUserSVCImpl_PasswordEncrypt(t *testing.T) {
 				return
 			}
 
-			fmt.Println(gotEncryptedPass)
 			if bcrypt.CompareHashAndPassword([]byte(gotEncryptedPass), []byte(tt.args.pass)) != nil {
 				t.Errorf("EncryptPassword() want hashes to match")
 			}
@@ -126,7 +125,7 @@ func TestUserSVCImpl_CreateUser(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			ds := mock_datasource.NewMockDatasource(ctrl)
 			ds.EXPECT().GetKey(generateUserKey(tt.args.username)).Return("", nil)
-			ds.EXPECT().SetKey(generateUserKey(tt.args.username), gomock.Any(), 0).Return(tt.dsErr)
+			ds.EXPECT().SetKey(generateUserKey(tt.args.username), gomock.Any(), time.Duration(0)).Return(tt.dsErr)
 
 			svc := &UserSVCImpl{
 				ds: ds,
