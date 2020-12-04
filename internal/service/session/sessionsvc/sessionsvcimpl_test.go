@@ -2,6 +2,7 @@ package sessionsvc
 
 import (
 	"errors"
+	"fmt"
 	"github.com/golang/mock/gomock"
 	"reflect"
 	"sso-v2/gen/mocks/mock_datasource"
@@ -176,10 +177,10 @@ func TestSessionSVCImpl_GetSessionById_GetKeyError(t *testing.T) {
 func TestSessionSVCImpl_GetSessionById_SessionFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	ds := mock_datasource.NewMockDatasource(ctrl)
-	ds.EXPECT().GetKey(generateSessionKey("12345")).Return(`{"key":"12345", "username":"joehrke", "sessionVars":{"test":"val"}}`, nil)
+	ds.EXPECT().GetKey(generateSessionKey("12345")).Return(`{"id":"12345", "username":"joehrke", "sessionVars":{"test":"val"}}`, nil)
 
 	//This expect makes sure key expiration is reset in Redis
-	ds.EXPECT().SetKey(generateSessionKey("12345"), `{"key":"12345", "username":"joehrke", "sessionVars":{"test":"val"}}`, session.MAX_SESSION_DURATION)
+	ds.EXPECT().SetKey(generateSessionKey("12345"), `{"id":"12345", "username":"joehrke", "sessionVars":{"test":"val"}}`, session.MAX_SESSION_DURATION)
 
 	svc := &SessionSVCImpl{
 		ds: ds,
@@ -195,6 +196,8 @@ func TestSessionSVCImpl_GetSessionById_SessionFound(t *testing.T) {
 		SessionVars: map[string]string{"test": "val"},
 	}
 	if !reflect.DeepEqual(sess, expectedSession) {
+		fmt.Println(sess)
+		fmt.Println(expectedSession)
 		t.Error("expected sessionhandlers didn't match")
 		return
 	}

@@ -1,8 +1,8 @@
 package usersvc
 
 import (
-	"encoding/base64"
 	"errors"
+	"fmt"
 	"github.com/golang/mock/gomock"
 	"golang.org/x/crypto/bcrypt"
 	"sso-v2/gen/mocks/mock_datasource"
@@ -35,12 +35,8 @@ func TestUserSVCImpl_PasswordEncrypt(t *testing.T) {
 				return
 			}
 
-			decodedHash, err := base64.StdEncoding.DecodeString(gotEncryptedPass)
-			if err != nil {
-				t.Error("password encoding issue")
-			}
-
-			if bcrypt.CompareHashAndPassword(decodedHash, []byte(tt.args.pass)) != nil {
+			fmt.Println(gotEncryptedPass)
+			if bcrypt.CompareHashAndPassword([]byte(gotEncryptedPass), []byte(tt.args.pass)) != nil {
 				t.Errorf("EncryptPassword() want hashes to match")
 			}
 		})
@@ -185,7 +181,7 @@ func TestUserSVCImpl_AuthUser(t *testing.T) {
 				username: "joehrke",
 				pass:     "abc1234",
 			},
-			userFound: `{"username":"joehrke", "hashedPass":"JDJhJDE0JHBmRnZYWWtvaXViWEFIdm9ra2lEVi5PbzhwRXppQXNBOHJzNXVyYXpIZ2NYM1BjczlkMy91"}`,
+			userFound: `{"username":"joehrke", "hashedPass":"$2a$14$qSVa3Pqd8DHQ2.U3KgWuAeB9ofed8ivKS3EkengCxEI1N1At.GuHe"}`,
 			dsError:   nil,
 			wantErr:   false,
 			want:      false,
@@ -196,7 +192,7 @@ func TestUserSVCImpl_AuthUser(t *testing.T) {
 				username: "joehrke",
 				pass:     "abc123",
 			},
-			userFound: `{"username":"joehrke", "hashedPass":"JDJhJDE0JHBmRnZYWWtvaXViWEFIdm9ra2lEVi5PbzhwRXppQXNBOHJzNXVyYXpIZ2NYM1BjczlkMy91"}`,
+			userFound: `{"username":"joehrke", "hashedPass":"$2a$14$qSVa3Pqd8DHQ2.U3KgWuAeB9ofed8ivKS3EkengCxEI1N1At.GuHe"}`,
 			dsError:   nil,
 			wantErr:   false,
 			want:      true,

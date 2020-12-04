@@ -23,11 +23,8 @@ func (svc *UserSVCImpl) EncryptPassword(pass string) (encryptedPass string, err 
 	bytes, err := bcrypt.GenerateFromPassword([]byte(pass), 14)
 	if err != nil {
 		log.Print("error generating bcrypt hash: " + err.Error())
-		return "", nil
+		return "", err
 	}
-
-	//Encoded to handle weird binary issues when moving in and out of Redis
-	//encodedPass := base64.StdEncoding.EncodeToString(bytes)
 
 	return string(bytes), nil
 }
@@ -49,12 +46,6 @@ func (svc *UserSVCImpl) AuthUser(username string, pass string) (bool, error) {
 		log.Printf("error unmarshaling userhandlers data: %v", err.Error())
 		return false, err
 	}
-
-	//hashPass, err := base64.StdEncoding.DecodeString(userDat.HashedPass)
-	//if err != nil {
-	//	log.Printf("error base64 decoding: %v", err.Error())
-	//	return false, err
-	//}
 
 	err = bcrypt.CompareHashAndPassword([]byte(userDat.HashedPass), []byte(pass))
 	//if our passwords mismatch, its not a failure, just rejected

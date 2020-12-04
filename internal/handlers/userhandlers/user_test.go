@@ -17,6 +17,10 @@ func TestCreateUserHandler(t *testing.T) {
 		statusCode int
 		body       string
 	}
+	type hashPassCall struct {
+		expected bool
+		err      error
+	}
 	tests := []struct {
 		name             string
 		requestBody      string
@@ -24,6 +28,7 @@ func TestCreateUserHandler(t *testing.T) {
 		password         string
 		expectSvcCall    bool
 		expectedResponse expectedResponse
+		hashPassCall     hashPassCall
 	}{
 		{
 			name:          "missing everything",
@@ -53,6 +58,21 @@ func TestCreateUserHandler(t *testing.T) {
 			},
 		},
 		{
+			name:          "hashing pass failure",
+			requestBody:   `{"username":"joehrke","password":"asdf"}`,
+			expectSvcCall: false,
+			username:      "joehrke",
+			password:      "asdf",
+			expectedResponse: expectedResponse{
+				statusCode: 500,
+				body:       `{"message":"error creating user"}`,
+			},
+			hashPassCall: hashPassCall{
+				expected: true,
+				err:      errors.New("some hashing error"),
+			},
+		},
+		{
 			name:          "OK",
 			expectSvcCall: true,
 			username:      "joehrke",
@@ -61,6 +81,10 @@ func TestCreateUserHandler(t *testing.T) {
 			expectedResponse: expectedResponse{
 				statusCode: 201,
 				body:       ``,
+			},
+			hashPassCall: hashPassCall{
+				expected: true,
+				err:      nil,
 			},
 		},
 	}
@@ -71,8 +95,13 @@ func TestCreateUserHandler(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			userSvc := mock_user.NewMockUserSVC(ctrl)
+
+			if tt.hashPassCall.expected {
+				userSvc.EXPECT().EncryptPassword(tt.password).Return("encryptedPass", tt.hashPassCall.err)
+			}
+
 			if tt.expectSvcCall {
-				userSvc.EXPECT().CreateUser(tt.username, tt.password)
+				userSvc.EXPECT().CreateUser(tt.username, "encryptedPass")
 			}
 
 			router := apitest.BuildTestRouter(method, url, CreateUserHandler(userSvc))
@@ -241,7 +270,7 @@ func TestAuthUserHandler(t *testing.T) {
 
 			sessionSvc := mock_session.NewMockSessionSVC(ctrl)
 			if tt.expectSessionSvcCall {
-				sessionSvc.EXPECT().SetSession(tt.username, gomock.Any()).Return(tt.expectedSessionIdHeader, tt.expectedSessionSvcError)
+				sessionSvc.EXPECT().CreateSession(tt.username, gomock.Any()).Return(tt.expectedSessionIdHeader, tt.expectedSessionSvcError)
 			}
 
 			router := apitest.BuildTestRouter(method, url, AuthUserHandler(userSvc, sessionSvc))

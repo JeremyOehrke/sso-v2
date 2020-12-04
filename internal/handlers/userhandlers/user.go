@@ -24,7 +24,14 @@ func CreateUserHandler(svc user.UserSVC) gin.HandlerFunc {
 			return
 		}
 
-		err := svc.CreateUser(userData.Username, userData.Password)
+		hashedPass, err := svc.EncryptPassword(userData.Password)
+		if err != nil {
+			log.Printf("error hashing password: %v", err.Error())
+			ctx.JSON(http.StatusInternalServerError, handlers.ErrorMessage{Message: "error creating user"})
+			return
+		}
+
+		err = svc.CreateUser(userData.Username, hashedPass)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, handlers.ErrorMessage{Message: "error creating user"})
 			return
