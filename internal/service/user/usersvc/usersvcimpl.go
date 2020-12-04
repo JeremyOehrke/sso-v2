@@ -1,7 +1,6 @@
 package usersvc
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"golang.org/x/crypto/bcrypt"
@@ -28,9 +27,9 @@ func (svc *UserSVCImpl) EncryptPassword(pass string) (encryptedPass string, err 
 	}
 
 	//Encoded to handle weird binary issues when moving in and out of Redis
-	encodedPass := base64.StdEncoding.EncodeToString(bytes)
+	//encodedPass := base64.StdEncoding.EncodeToString(bytes)
 
-	return encodedPass, nil
+	return string(bytes), nil
 }
 
 func (svc *UserSVCImpl) AuthUser(username string, pass string) (bool, error) {
@@ -51,13 +50,13 @@ func (svc *UserSVCImpl) AuthUser(username string, pass string) (bool, error) {
 		return false, err
 	}
 
-	hashPass, err := base64.StdEncoding.DecodeString(userDat.HashedPass)
-	if err != nil {
-		log.Printf("error base64 decoding: %v", err.Error())
-		return false, err
-	}
+	//hashPass, err := base64.StdEncoding.DecodeString(userDat.HashedPass)
+	//if err != nil {
+	//	log.Printf("error base64 decoding: %v", err.Error())
+	//	return false, err
+	//}
 
-	err = bcrypt.CompareHashAndPassword(hashPass, []byte(pass))
+	err = bcrypt.CompareHashAndPassword([]byte(userDat.HashedPass), []byte(pass))
 	//if our passwords mismatch, its not a failure, just rejected
 	if err == bcrypt.ErrMismatchedHashAndPassword {
 		return false, nil
