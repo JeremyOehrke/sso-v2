@@ -33,7 +33,14 @@ func NewRedisDatasource(dsUrl string) datasource.Datasource {
 
 func (ds *RedisDataSource) GetKey(key string) (val string, err error) {
 	retVal, err := ds.cli.Get(key).Result()
-	if err != nil && err != datasource.KeyNotFound {
+
+	// This reset of the returned error is to prevent having to handle the no record found error across the paplication
+	// since this application doesn't view no record to be an error
+	if err == redis.Nil {
+		err = nil
+	}
+
+	if err != nil {
 		log.Print("error getting key: " + err.Error())
 	}
 	return retVal, err
