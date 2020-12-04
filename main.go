@@ -6,6 +6,9 @@ import (
 	"log"
 	"os"
 	"sso-v2/internal/datasource/redisdatasource"
+	"sso-v2/internal/handlers/routes"
+	"sso-v2/internal/service/session/sessionsvc"
+	"sso-v2/internal/service/user/usersvc"
 )
 
 func main() {
@@ -18,10 +21,11 @@ func main() {
 	/* Dependency Initialization */
 	redisUrl := os.Getenv("REDISCLOUD_URL")
 	ds := redisdatasource.NewRedisDatasource(redisUrl)
-	_ = ds.SetKey("doot", "doot", 0)
+	userSvc := usersvc.NewUserSvc(ds)
+	sessionSvc := sessionsvc.NewSessionSvc(ds)
 	/* End Dependency Initialization */
 
-	router := gin.New()
+	router := routes.BuildRoutes(gin.ReleaseMode, userSvc, sessionSvc)
 	router.Use(gin.Logger())
 
 	router.Run(":" + port)
