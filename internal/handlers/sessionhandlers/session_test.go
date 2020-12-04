@@ -141,3 +141,123 @@ func TestGetSessionDataHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestSetSessionDataHandler(t *testing.T) {
+	type setSessionRequest struct {
+		expected    bool
+		sessionId   string
+		sessionBody interface{}
+		err         error
+	}
+	type expectedHttpResponse struct {
+		statusCode int
+		jsonBody   string
+	}
+	type requestData struct {
+		route    string
+		jsonBody string
+	}
+	tests := []struct {
+		name                 string
+		route                string
+		method               string
+		requestData          requestData
+		setSessionRequest    setSessionRequest
+		expectedHttpResponse expectedHttpResponse
+	}{
+		{
+			name:   "no session ID passed",
+			route:  "/session/:sessionId",
+			method: "PUT",
+			requestData: requestData{
+				route:    "/session/",
+				jsonBody: "",
+			},
+			expectedHttpResponse: expectedHttpResponse{
+				statusCode: 404,
+				jsonBody:   "404 page not found",
+			},
+		},
+		{
+			name:   "missing body parts",
+			route:  "/session/:sessionId",
+			method: "PUT",
+			requestData: requestData{
+				route:    "/session/asdf-1234",
+				jsonBody: "{}",
+			},
+			setSessionRequest: setSessionRequest{
+				expected: false,
+			},
+			expectedHttpResponse: expectedHttpResponse{
+				statusCode: 400,
+				jsonBody:   `{"message":"missing body"}`,
+			},
+		},
+		{
+			name:   "session not found",
+			route:  "/session/:sessionId",
+			method: "PUT",
+			requestData: requestData{
+				route:    "/session/asdf-1234",
+				jsonBody: `{"sessionVars":{"test":"val"}}`,
+			},
+			setSessionRequest: setSessionRequest{
+				expected:  true,
+				sessionId: "asdf-1234",
+				sessionBody: map[string]string{
+					"test": "val",
+				},
+				err: session.SessionNotFoundError,
+			},
+			expectedHttpResponse: expectedHttpResponse{
+				statusCode: 404,
+				jsonBody:   "",
+			},
+		},
+		{
+			name:   "OK",
+			route:  "/session/:sessionId",
+			method: "PUT",
+			requestData: requestData{
+				route:    "/session/asdf-1234",
+				jsonBody: `{"sessionVars":{"test":"val"}}`,
+			},
+			setSessionRequest: setSessionRequest{
+				expected:  true,
+				sessionId: "asdf-1234",
+				sessionBody: map[string]string{
+					"test": "val",
+				},
+				err: nil,
+			},
+			expectedHttpResponse: expectedHttpResponse{
+				statusCode: 204,
+				jsonBody:   "",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			sessionSvc := mock_session.NewMockSessionSVC(ctrl)
+			if tt.setSessionRequest.expected {
+				sessionSvc.EXPECT().SetSessionBodyById(tt.setSessionRequest.sessionId, tt.setSessionRequest.sessionBody).Return(tt.setSessionRequest.err)
+			}
+
+			router := apitest.BuildTestRouter(tt.method, tt.route, SetSessionDataHandler(sessionSvc))
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest(tt.method, tt.requestData.route, strings.NewReader(tt.requestData.jsonBody))
+			router.ServeHTTP(w, req)
+
+			ctrl.Finish()
+			if w.Code != tt.expectedHttpResponse.statusCode {
+				t.Errorf("Unexpected status code -- got: %v, wanted: %v", w.Code, tt.expectedHttpResponse.statusCode)
+			}
+			if strings.TrimSuffix(w.Body.String(), "\n") != tt.expectedHttpResponse.jsonBody {
+				t.Errorf("Unexpected body -- got: %v, wanted: %v", strings.TrimSuffix(w.Body.String(), "\n"), tt.expectedHttpResponse.jsonBody)
+			}
+		})
+	}
+}

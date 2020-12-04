@@ -16,6 +16,7 @@ type SessionSVC interface {
 	GetSessionById(id string) (*SessionData, error)
 	CreateSession(username string, sessionBody map[string]string) (sessionId string, err error)
 	DestroySession(id string) error
+	SetSessionBodyById(id string, body map[string]string) error
 }
 
 type SessionError string

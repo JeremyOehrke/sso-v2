@@ -21,7 +21,7 @@ func NewSessionSvc(ds datasource.Datasource) session.SessionSVC {
 func (svc *SessionSVCImpl) GetSessionById(id string) (*session.SessionData, error) {
 	rawSess, err := svc.ds.GetKey(generateSessionKey(id))
 	if err != nil {
-		log.Print("error fetching sessionhandlers by id: " + err.Error())
+		log.Print("error fetching sessionhandlers by key: " + err.Error())
 		return nil, err
 	}
 	// if our key returns empty, no sessionhandlers exists
@@ -75,6 +75,43 @@ func (svc *SessionSVCImpl) DestroySession(id string) error {
 		log.Print("error deleting key from store: " + err.Error())
 		return err
 	}
+	return nil
+}
+
+func (svc *SessionSVCImpl) SetSessionBodyById(id string, body map[string]string) error {
+	rawSess, err := svc.ds.GetKey(generateSessionKey(id))
+	if err != nil {
+		log.Print("error fetching sessionhandlers by key: " + err.Error())
+		return err
+	}
+	// if our key returns empty, no sessionhandlers exists
+	if len(rawSess) == 0 {
+		return session.SessionNotFoundError
+	}
+
+	//if we have a sessionhandlers, unmarshal it and return
+	sess := &session.SessionData{}
+	err = json.Unmarshal([]byte(rawSess), sess)
+	if err != nil {
+		log.Print("error unmarshaling sessionhandlers data: " + err.Error())
+		return err
+	}
+
+	//Set the body and remarshal back into a string
+	sess.SessionVars = body
+	sessBytes, err := json.Marshal(sess)
+	if err != nil {
+		log.Print("error marshaling sessionhandlers data: " + err.Error())
+		return err
+	}
+
+	//reset the key
+	err = svc.ds.SetKey(generateSessionKey(id), string(sessBytes), session.MAX_SESSION_DURATION)
+	if err != nil {
+		log.Print("error setting key: " + err.Error())
+		return err
+	}
+
 	return nil
 }
 

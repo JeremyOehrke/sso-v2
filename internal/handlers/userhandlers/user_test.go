@@ -241,7 +241,7 @@ func TestAuthUserHandler(t *testing.T) {
 
 			sessionSvc := mock_session.NewMockSessionSVC(ctrl)
 			if tt.expectSessionSvcCall {
-				sessionSvc.EXPECT().CreateSession(tt.username, gomock.Any()).Return(tt.expectedSessionIdHeader, tt.expectedSessionSvcError)
+				sessionSvc.EXPECT().SetSession(tt.username, gomock.Any()).Return(tt.expectedSessionIdHeader, tt.expectedSessionSvcError)
 			}
 
 			router := apitest.BuildTestRouter(method, url, AuthUserHandler(userSvc, sessionSvc))

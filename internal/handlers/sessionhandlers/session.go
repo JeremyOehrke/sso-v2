@@ -1,6 +1,7 @@
 package sessionhandlers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -28,5 +29,38 @@ func GetSessionDataHandler(svc session.SessionSVC) gin.HandlerFunc {
 		}
 
 		ctx.JSON(http.StatusOK, *sessionData)
+	}
+}
+
+type setSessionRequest struct {
+	SessionVars map[string]string `json:"sessionVars"`
+}
+
+func SetSessionDataHandler(svc session.SessionSVC) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		sessionId := ctx.Param("sessionId")
+		if sessionId == "" {
+			ctx.Data(http.StatusNotFound, gin.MIMEPlain, nil)
+			return
+		}
+
+		requestData := &setSessionRequest{}
+		err := ctx.BindJSON(requestData)
+		if err != nil {
+			log.Printf("error binding request body: %v", err.Error())
+			ctx.JSON(http.StatusInternalServerError, handlers.ErrorMessage{Message: "error processing body"})
+			return
+		}
+		if requestData.SessionVars == nil {
+			ctx.JSON(http.StatusBadRequest, handlers.ErrorMessage{Message: "missing body"})
+			return
+		}
+
+		fmt.Println(sessionId)
+		err = svc.SetSessionBodyById(sessionId, requestData.SessionVars)
+		if err == session.SessionNotFoundError {
+			ctx.Data(http.StatusNotFound, gin.MIMEPlain, nil)
+		}
+		ctx.Data(http.StatusNoContent, gin.MIMEPlain, nil)
 	}
 }
