@@ -64,3 +64,20 @@ func SetSessionDataHandler(svc session.SessionSVC) gin.HandlerFunc {
 		ctx.Data(http.StatusNoContent, gin.MIMEPlain, nil)
 	}
 }
+
+func DestroySessionHandler(svc session.SessionSVC) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		sessionId := ctx.Param("sessionId")
+		if sessionId == "" {
+			ctx.Data(http.StatusNotFound, gin.MIMEPlain, nil)
+			return
+		}
+
+		err := svc.DestroySession(sessionId)
+		if err != nil && err != session.SessionNotFoundError {
+			ctx.Data(http.StatusInternalServerError, gin.MIMEPlain, nil)
+		}
+
+		ctx.Data(http.StatusOK, gin.MIMEPlain, nil)
+	}
+}

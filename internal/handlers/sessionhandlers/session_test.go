@@ -3,6 +3,7 @@ package sessionhandlers
 import (
 	"errors"
 	"github.com/golang/mock/gomock"
+	"net/http"
 	"net/http/httptest"
 	"sso-v2/gen/mocks/mock_session"
 	"sso-v2/internal/service/session"
@@ -257,6 +258,75 @@ func TestSetSessionDataHandler(t *testing.T) {
 			}
 			if strings.TrimSuffix(w.Body.String(), "\n") != tt.expectedHttpResponse.jsonBody {
 				t.Errorf("Unexpected body -- got: %v, wanted: %v", strings.TrimSuffix(w.Body.String(), "\n"), tt.expectedHttpResponse.jsonBody)
+			}
+		})
+	}
+}
+
+func TestDestroySessionHandler(t *testing.T) {
+	type destroySessionRequest struct {
+		expected  bool
+		sessionId string
+		err       error
+	}
+	tests := []struct {
+		name                  string
+		route                 string
+		requestRoute          string
+		destroySessionRequest destroySessionRequest
+		expectedResponseCode  int
+	}{
+		{
+			name:         "session destroy error",
+			route:        "/sessions/:sessionId",
+			requestRoute: "/sessions/asdf-1234",
+			destroySessionRequest: destroySessionRequest{
+				expected:  true,
+				sessionId: "asdf-1234",
+				err:       errors.New("some weird errror"),
+			},
+			expectedResponseCode: http.StatusInternalServerError,
+		},
+		{
+			name:         "session not found error",
+			route:        "/sessions/:sessionId",
+			requestRoute: "/sessions/asdf-1234",
+			destroySessionRequest: destroySessionRequest{
+				expected:  true,
+				sessionId: "asdf-1234",
+				err:       session.SessionNotFoundError,
+			},
+			expectedResponseCode: http.StatusOK, //This is OK because it effectively means the session was already gone
+		},
+		{
+			name:         "session destroyed",
+			route:        "/sessions/:sessionId",
+			requestRoute: "/sessions/asdf-1234",
+			destroySessionRequest: destroySessionRequest{
+				expected:  true,
+				sessionId: "asdf-1234",
+				err:       nil,
+			},
+			expectedResponseCode: http.StatusOK,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			sessionSvc := mock_session.NewMockSessionSVC(ctrl)
+			if tt.destroySessionRequest.expected {
+				sessionSvc.EXPECT().DestroySession(tt.destroySessionRequest.sessionId).Return(tt.destroySessionRequest.err)
+			}
+
+			router := apitest.BuildTestRouter("DELETE", tt.route, DestroySessionHandler(sessionSvc))
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("DELETE", tt.requestRoute, strings.NewReader(""))
+			router.ServeHTTP(w, req)
+
+			ctrl.Finish()
+			if w.Code != tt.expectedResponseCode {
+				t.Errorf("Unexpected status code -- got: %v, wanted: %v", w.Code, tt.expectedResponseCode)
 			}
 		})
 	}

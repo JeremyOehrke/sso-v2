@@ -22,10 +22,12 @@ func BuildRoutes(ginMode string, usersvc user.UserSVC, sessionsvc session.Sessio
 			usrs.POST("/", userhandlers.CreateUserHandler(usersvc))
 			usrs.POST("/doAuth", userhandlers.AuthUserHandler(usersvc, sessionsvc))
 		}
-
+		//Session routes
 		sess := v1.Group("/sessions")
 		{
 			sess.GET("/:sessionId", sessionhandlers.GetSessionDataHandler(sessionsvc))
+			sess.PUT("/:sessionId", sessionhandlers.SetSessionDataHandler(sessionsvc))
+			sess.DELETE("/:sessionId", sessionhandlers.DestroySessionHandler(sessionsvc))
 		}
 	}
 
