@@ -50,7 +50,7 @@ func (svc *SessionSVCImpl) GetSessionById(id string) (*session.SessionData, erro
 func (svc *SessionSVCImpl) CreateSession(username string, sessionBody map[string]string) (sessionId string, err error) {
 	sessionId = generateSessionId()
 	sess := session.SessionData{
-		Id:          generateSessionKey(sessionId),
+		Id:          sessionId,
 		Username:    username,
 		SessionVars: sessionBody,
 	}
