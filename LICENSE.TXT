@@ -1,1 +1,3 @@
 DON'T USE THIS EVER.  IT'S NOT FULLY SECURE.
+
+I'm not responsible if you use this and end up leaking private data.
